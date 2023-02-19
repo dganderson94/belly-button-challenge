@@ -1,35 +1,14 @@
+// Setup
 const url = "https://2u-data-curriculum-team.s3.amazonaws.com/dataviz-classroom/v1.1/14-Interactive-Web-Visualizations/02-Homework/samples.json";
-
-// Fetch JSON
 const dataPromise = d3.json(url);
-dataPromise.then((json) => {
-    init(json);
-});
+init();
 
-// Initialize default bar chart
-function init (json) {
-    Plotly.newPlot("bar", getData(0, json));
-    popDrop(json);
-}
-
-// Get data for selected individual
-function getData (id, json) {
-    values = [];
-    labels = [];
-    hovertext = [];
-    for (i=0; i<10; i++) {
-        values.unshift(json.samples[id].sample_values[i]);
-        labels.unshift("OTU " + json.samples[id].otu_ids[i]);
-        hovertext.unshift(json.samples[id].otu_labels[i]);
-    }
-    data = [{
-        type: "bar",
-        x: values,
-        y: labels,
-        hovertext: hovertext,
-        orientation: "h"
-    }]
-    return data;
+// Initialize page
+function init () {
+    dataPromise.then((json) => {
+        popDrop(json);
+    });
+    optionChanged(0);
 }
 
 // Populate dropdown menu
@@ -40,10 +19,46 @@ function popDrop (data) {
     }
 }
 
-// Update plotly
+// Get data for selected subject
+function getData (id, json) {
+    let subjectMetadata = json.metadata[id];
+    let metadataPanel = d3.select("#sample-metadata");
+    metadataPanel.selectAll("div").remove();
+    for (const [key, value] of Object.entries(subjectMetadata)) {
+        metadataPanel.append("div").text(`${key}: ${value}`);
+    }
+
+    let bar = [{
+        type: "bar",
+        x: json.samples[id].sample_values.slice(0,10).reverse(),
+        y: json.samples[id].otu_ids.slice(0,10).map((element) => "OTU " + element).reverse(),
+        text: json.samples[id].otu_labels.slice(0,10).reverse(),
+        orientation: "h"
+    }];
+
+    let bubble = [{
+        mode: "markers",
+        x: json.samples[id].otu_ids,
+        y: json.samples[id].sample_values,
+        marker: {
+            size: json.samples[id].sample_values,
+            color: json.samples[id].otu_ids
+        },
+        text: json.samples[id].otu_labels
+    }];
+
+    let data = {
+        bar: bar,
+        bubble: bubble
+    };
+    return data;
+}
+
+// Update plots
 function optionChanged(id) {
     dataPromise.then((json) => {
-        Plotly.newPlot("bar", getData(id, json));
+        let data = getData(id, json)
+        Plotly.newPlot("bar", data.bar);
+        Plotly.newPlot("bubble", data.bubble);
     });
-    console.log("hello");
 }
