@@ -25,14 +25,14 @@ function getData (id, json) {
     let metadataPanel = d3.select("#sample-metadata");
     metadataPanel.selectAll("div").remove();
     for (const [key, value] of Object.entries(subjectMetadata)) {
-        metadataPanel.append("div").text(`${key}: ${value}`);
+        if (value) metadataPanel.append("div").text(`${key}: ${value}`);
     }
 
     let bar = [{
         type: "bar",
-        x: json.samples[id].sample_values.slice(0,10).reverse(),
-        y: json.samples[id].otu_ids.slice(0,10).map((element) => "OTU " + element).reverse(),
-        text: json.samples[id].otu_labels.slice(0,10).reverse(),
+        x: json.samples[id].sample_values.slice(0,10),
+        y: json.samples[id].otu_ids.slice(0,10).map((element) => "OTU " + element),
+        text: json.samples[id].otu_labels.slice(0,10).map((element) => element.replaceAll(";","<br>")),
         orientation: "h"
     }];
 
@@ -44,7 +44,7 @@ function getData (id, json) {
             size: json.samples[id].sample_values,
             color: json.samples[id].otu_ids
         },
-        text: json.samples[id].otu_labels
+        text: json.samples[id].otu_labels.map((element) => element.replaceAll(";","<br>"))
     }];
 
     let data = {
@@ -57,8 +57,18 @@ function getData (id, json) {
 // Update plots
 function optionChanged(id) {
     dataPromise.then((json) => {
+        let barLayout = {
+            yaxis: {
+                autorange: "reversed"
+            }
+        };
+        let bubbleLayout = {
+            xaxis: {
+                title: "OTU ID"
+            }
+        };
         let data = getData(id, json)
-        Plotly.newPlot("bar", data.bar);
-        Plotly.newPlot("bubble", data.bubble);
+        Plotly.newPlot("bar", data.bar, barLayout);
+        Plotly.newPlot("bubble", data.bubble, bubbleLayout);
     });
 }
