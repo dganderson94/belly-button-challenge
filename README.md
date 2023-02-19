@@ -1,1 +1,2 @@
 # belly-button-challenge
+This repository contains an HTML/JavaScript page showing graphs detailing the bacteria present in test subjects' belly buttons. It uses a bar graph and a bubble graph to display the quantity of various types of bacteria, and it also shows metadata for each test subject. The graphs and metadata update when a dropdown menu is used to pick a different test subject.
